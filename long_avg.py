@@ -9,10 +9,10 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 
-npy_files = glob.glob('data_1/*.npy')
+npy_files = glob.glob('data_1/*.npy') # change this to the directory where the data is stored
 averages = len(npy_files)
 
-
+# may need to change type casting
 cum = np.load(npy_files[0]).astype(int, casting='safe')
 
 for f in npy_files[1:averages-1]:

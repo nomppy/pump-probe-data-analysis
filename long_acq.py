@@ -87,7 +87,7 @@ def acq_wav (chan=None, form=None, points=None, timeout=60000):
         scope.query(f'dig {schan};*opc?')
         scope.timeout = _
         
-        print('Acq done. Begin transfer')
+        print('Acquisition done. Begin transfer')
         
         if sform == 'ASC':
             values = scope.query_ascii_values('waveform:data?', 
@@ -103,17 +103,28 @@ def acq_wav (chan=None, form=None, points=None, timeout=60000):
         print(f'TIMEOUT: The acquisition took longer than {timeout}ms.')
         scope.clear()
 
-scope.write('acquire:average 1') # enables average
+### settings for the acquisition and waveform transfer
+
+scope.write('acquire:average 1') # enables average 1: on, 0: off
 scope.write('acquire:count 4096') # how many acquisitions to average
 scope.write('acquire:complete 100') # this should be kept at 100 unless you have good reason to change it; see README
 scope.write('acquire:mode ETIM') # equivalent time mode; see programmer's guide, chapter 11 /251
 scope.write('waveform:source chan3')
 scope.write('waveform:format asc') # see programmer's guide, chapter 39 / 1614
 
-
+### get 100 acquisitions
 acqs = 100
+points = scope.query('acquire:points?').rstrip()
+cumulative = np.zeros(int(points))
+
 for i in range(acqs):
     v = acq_wav()
+    cumulative += v
+    
+    # need to ensure that the target directory exists; can be changed to whatever you want
     with open(f'data_blocked/trace_chan3_ASC_avg10000_{i}.npy', 'wb') as f:
         np.save(f, v)
+
+    avg = cumulative / acqs
+    plt.plot(avg, '-o')
 
